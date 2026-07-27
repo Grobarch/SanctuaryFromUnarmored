@@ -35,10 +35,10 @@ choćby miała Heavy Armor 100.
 Przełącznik **`Armour proficiency matters`** decyduje, czy biegłość w noszonym pancerzu
 dodatkowo skaluje wynik:
 
-| Przypadek (`keepLight` 40 %) | ON (domyślnie) | OFF |
+| Przypadek (przy domyślnym `keepLight` 60 %) | ON (domyślnie) | OFF |
 |---|---|---|
-| Unarmored 100, pełny lekki, Light Armor 100 | 13 pkt | 13 pkt |
-| Unarmored 100, pełny lekki, Light Armor 50 | **6 pkt** | **13 pkt** |
+| Unarmored 100, pełny lekki, Light Armor 100 | 19 pkt | 19 pkt |
+| Unarmored 100, pełny lekki, Light Armor 50 | **10 pkt** | **19 pkt** |
 | Unarmored 7, pełny średni, Medium Armor 64 | **0 pkt** | **0 pkt** |
 
 Wzór dla slotu: `waga × keep% × biegłość × dodgeZeSkilla(unarmored)`, gdzie biegłość to
@@ -118,8 +118,16 @@ i **Update frequency**. Nic nie jest zaszyte w kodzie — `formula.lua` czyta wy
 co przyjdzie z konfiguracji. Zmiana działa od razu, bez restartu (gracz), NPC dociągają
 w ciągu ~10 s.
 
-Domyślne wartości to punkt startowy do strojenia, nie „balans docelowy”. Punkt odniesienia:
-mody inspiracyjne (#51332, #55758) kończą w okolicach 40–60 punktów przy skillu 100.
+Wartości domyślne (wystrojone w grze, nie wzięte z sufitu):
+
+| | | | |
+|---|---|---|---|
+| cap **40** | próg **20** | punkty na poziom **0,4** | udział NPC **100 %** |
+| lekki **60 %** | średni **40 %** | ciężki **20 %** | biegłość pancerza **ON** |
+| mnożnik AR **1,00x** | nauka za unik **0,5** | | |
+
+Przy tym zestawie goły Unarmored 100 daje **32 punkty**. Punkt odniesienia: mody inspiracyjne
+(#51332, #55758) kończą w okolicach 40–60 przy skillu 100.
 
 ## Architektura
 
@@ -182,14 +190,17 @@ otwartym oknie, a ono **pauzuje grę** — `onUpdate` dostaje wtedy `dt = 0`, wi
 na `dt` stawałby dokładnie w momencie, w którym jest potrzebny. Objaw: wartość na pasku
 Inventory Extender nie drgała, dopóki nie zamknęło się ekwipunku.
 
-Wszystkie interwały są **konfigurowalne** (Options → Scripts → grupa „Update frequency"):
-
 | Wyzwalacz | Gracz | NPC |
 |---|---|---|
-| Pełne przeliczenie (łapie zmiany **umiejętności**: trening, fortify/drain) | 1 s | 10 s |
-| Kontrola **ekwipunku** — pełne przeliczenie tylko gdy coś się zmieniło; `0` = wyłączone | 0,2 s | 2 s |
+| Pełne przeliczenie — **konfigurowalne** | 1 s | 10 s |
+| Kontrola ekwipunku — **wyprowadzana** jako ⅕ powyższego | 0,2 s | 2 s |
 | `onInit`, `onActive` (wejście w aktywną strefę, wczytanie sejwa) | zawsze | zawsze |
-| Zmiana suwaka w opcjach | natychmiast | przy najbliższym przeliczeniu |
+| Zmiana ustawienia | natychmiast (gracz) | przy najbliższym przeliczeniu |
+
+Interwał kontroli ekwipunku **nie jest ustawieniem**. Rozdzielenie go od pełnego przeliczenia
+ma sens dopiero przy długim `refreshInterval`; przy domyślnej sekundzie kupowałoby 0,8 s
+responsywności kosztem dwóch suwaków i konieczności rozumienia różnicy między dwoma rodzajami
+odświeżania.
 
 **`Periodic updates for NPCs` = off** wyłącza dla NPC oba interwały: zostają wyłącznie `onInit`
 i `onActive`, czyli **zero pracy na klatkę** w tłocznych lokacjach. Skille NPC są statyczne,

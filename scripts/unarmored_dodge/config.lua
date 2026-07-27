@@ -43,10 +43,8 @@ M.defaults = {
     useArmorSkill = true,
     -- czestotliwosc
     refreshInterval = 1.0,
-    equipCheckInterval = 0.2,
     npcPeriodicRefresh = true,
     npcRefreshInterval = 10.0,
-    npcEquipCheckInterval = 2.0,
 }
 
 local function setting(key, renderer, argument)
@@ -123,10 +121,8 @@ local GROUPS = {
         order = 2,
         settings = {
             number('refreshInterval', { min = 0.1, max = 60 }),
-            number('equipCheckInterval', { min = 0, max = 60 }),
             checkbox('npcPeriodicRefresh'),
             number('npcRefreshInterval', { min = 0.1, max = 300 }),
-            number('npcEquipCheckInterval', { min = 0, max = 300 }),
         },
     },
 }

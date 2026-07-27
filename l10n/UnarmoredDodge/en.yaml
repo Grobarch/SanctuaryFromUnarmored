@@ -68,10 +68,9 @@ perfGroupDescription: |-
   polled - cheaply, and a full recalculation only fires when something actually changed.
 
 refreshInterval: Player - full recalculation (s)
-refreshIntervalDescription: "Catches skill changes: training, fortify and drain."
-
-equipCheckInterval: Player - equipment check (s)
-equipCheckIntervalDescription: How fast equipping armour is noticed. 0 disables the check.
+refreshIntervalDescription: |-
+  Covers skill changes (training, fortify, drain) and equipment. Equipment is additionally
+  watched by a cheap check five times as often, derived from this value.
 
 npcPeriodicRefresh: Periodic updates for NPCs
 npcPeriodicRefreshDescription: |-
@@ -80,9 +79,6 @@ npcPeriodicRefreshDescription: |-
 
 npcRefreshInterval: NPC - full recalculation (s)
 npcRefreshIntervalDescription: Ignored when periodic updates for NPCs are off.
-
-npcEquipCheckInterval: NPC - equipment check (s)
-npcEquipCheckIntervalDescription: Ignored when periodic updates for NPCs are off.
 
 # --- Live previews under the sliders (ICU placeholders: {name}, no percent sign) -----------
 preview_bare: "Unarmoured, skill 100  ->  {points} pts"

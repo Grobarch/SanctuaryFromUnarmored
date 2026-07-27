@@ -69,17 +69,21 @@ local lastEquipCheck = 0
 local refreshInterval = nil
 local equipCheckInterval = nil
 
+-- Ile razy czesciej niz pelne przeliczenie robimy tani zwiad ekwipunku. NIE jest to
+-- ustawienie: rozdzielenie obu interwalow ma sens dopiero przy dlugim `refreshInterval`,
+-- a przy domyslnej sekundzie kupowaloby 0,8 s responsywnosci kosztem dwoch suwakow
+-- i koniecznosci rozumienia roznicy miedzy dwoma rodzajami odswiezania.
+local EQUIP_CHECK_DIVISOR = 5
+
 local function reloadIntervals(cfg)
     if isPlayer then
         refreshInterval = cfg.refreshInterval
-        equipCheckInterval = cfg.equipCheckInterval
     elseif cfg.npcPeriodicRefresh then
         refreshInterval = cfg.npcRefreshInterval
-        equipCheckInterval = cfg.npcEquipCheckInterval
     else
         refreshInterval = nil
-        equipCheckInterval = nil
     end
+    equipCheckInterval = refreshInterval and (refreshInterval / EQUIP_CHECK_DIVISOR) or nil
 end
 
 reloadIntervals(config.all())
