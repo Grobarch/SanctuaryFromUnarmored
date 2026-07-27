@@ -1,0 +1,6 @@
+# Paczki wydaniowe budowane skryptem
+dist/
+
+# Python venv uzywany do testow
+.venv/
+__pycache__/

@@ -1,0 +1,93 @@
+pageName: Unarmored Dodge
+
+# --- Balance -----------------------------------------------------------------------------
+settingsGroup: Balance
+settingsGroupDescription: |-
+  One Sanctuary point = one percentage point off the attacker's chance to hit.
+  The line under each slider is live and recalculates as you drag.
+
+maxSanctuary: Maximum Sanctuary
+maxSanctuaryDescription: Hard ceiling on the bonus, whatever the curve below produces.
+
+threshold: Skill threshold
+thresholdDescription: Skill level at which the bonus starts.
+
+rate: Points per skill level
+rateDescription: Sanctuary points per skill level above the threshold.
+
+npcFactor: NPC share
+npcFactorDescription: |-
+  What NPCs get compared to you. The effect is passive, so it also applies NPC against NPC.
+
+arMultiplier: Armour rating multiplier
+arMultiplierDescription: |-
+  Scales the Unarmored part of armour rating; 1.00x is vanilla, and only empty slots count.
+  Raising it does NOT make NPCs strip their armour - the game settings stay untouched.
+
+dodgeXpScale: Skill gain from dodging
+dodgeXpScaleDescription: |-
+  Unarmored normally improves only when you get hit, so a working dodge slows down its own
+  progression. This trains it on a missed attack too, scaled against a blow that landed.
+  0 turns it off. With NCG this also feeds attribute growth, so it is not cosmetic.
+
+statsWindow: Show in stats window
+statsWindowDescription: Adds a Dodge line to Stats Window Extender, with a per-slot tooltip.
+
+inventoryBar: Show on the inventory bar
+inventoryBarDescription: Adds the bonus next to armour rating on Inventory Extender's bar.
+
+# --- Armour coverage ---------------------------------------------------------------------
+armourGroup: Armour coverage
+armourGroupDescription: |-
+  How much of the Unarmored bonus survives on a covered slot. Slots carry their vanilla armour
+  rating weights: cuirass 30%, shield / helmet / greaves / boots / each pauldron 10%, each
+  gauntlet 5%. A cuirass is therefore worth three helmets, and all nine add up to the whole
+  bonus.
+
+keepLight: Kept in light armour
+keepLightDescription: Share a covered slot still provides, scored from Light Armour.
+
+keepMedium: Kept in medium armour
+keepMediumDescription: Same, for medium armour.
+
+keepHeavy: Kept in heavy armour
+keepHeavyDescription: Same, for heavy armour. Zero removes the bonus from that slot.
+
+useArmorSkill: Armour proficiency matters
+useArmorSkillDescription: |-
+  Evasion always comes from Unarmored - armour skills never produce it on their own, so
+  a guard in full armour with no Unarmored training dodges nothing either way.
+  On: how well you handle the armour you wear scales what survives, reaching the full share
+  above at skill 100 and half of it at 50.
+  Off: only the shares above matter, and the armour skill is ignored entirely.
+
+# --- Update frequency --------------------------------------------------------------------
+perfGroup: Update frequency
+perfGroupDescription: |-
+  Nothing here runs every frame. The engine has no "item equipped" event, so equipment is
+  polled - cheaply, and a full recalculation only fires when something actually changed.
+
+refreshInterval: Player - full recalculation (s)
+refreshIntervalDescription: "Catches skill changes: training, fortify and drain."
+
+equipCheckInterval: Player - equipment check (s)
+equipCheckIntervalDescription: How fast equipping armour is noticed. 0 disables the check.
+
+npcPeriodicRefresh: Periodic updates for NPCs
+npcPeriodicRefreshDescription: |-
+  Turn off in crowded areas: NPCs then update only when they become active, at no per-frame
+  cost. Only reacting to armour they swap mid-fight is lost.
+
+npcRefreshInterval: NPC - full recalculation (s)
+npcRefreshIntervalDescription: Ignored when periodic updates for NPCs are off.
+
+npcEquipCheckInterval: NPC - equipment check (s)
+npcEquipCheckIntervalDescription: Ignored when periodic updates for NPCs are off.
+
+# --- Live previews under the sliders (ICU placeholders: {name}, no percent sign) -----------
+preview_bare: "Unarmoured, skill 100  ->  {points} pts"
+preview_light: "Full light armour, skills 100  ->  {points} pts"
+preview_medium: "Full medium armour, skills 100  ->  {points} pts"
+preview_heavy: "Full heavy armour, skills 100  ->  {points} pts"
+preview_npc: "Unarmoured, skill 100  ->  you {player} pts, NPC {npc} pts"
+preview_armorRating: "Unarmoured, skill 100  ->  armour rating {base} becomes {scaled}"
