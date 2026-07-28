@@ -1,10 +1,10 @@
 # Unarmored Dodge
-# Skalowany efekt Sanctuary z umiejetnosci Unarmored (oraz, w mniejszym stopniu,
-# z Light/Medium/Heavy Armor). Lua-only, wymaga OpenMW >= 0.51 (interfejs I.Combat).
+# A Sanctuary effect scaled from the Unarmored skill (and, to a lesser extent, from
+# Light/Medium/Heavy Armor). Lua-only, requires OpenMW >= 0.51 (the I.Combat interface).
 #
-# Bez CREATURE: stwory nie maja realnej umiejetnosci Unarmored (silnik wyprowadza ich
-# wartosc ze specjalizacji) i nie dostaja waniliowego armor rating z Unarmored, wiec
-# nie ma czego skalowac. Brak rejestracji = zero kosztu na kazdym stworze w swiecie.
+# No CREATURE: creatures have no real Unarmored skill (the engine derives their value from
+# a specialisation) and get no vanilla armour rating from it either, so there is nothing to
+# scale. Not registering for them means zero cost on every creature in the world.
 
 MENU: scripts/unarmored_dodge/slider.lua
 MENU: scripts/unarmored_dodge/menu.lua

@@ -1,14 +1,14 @@
-"""Walidacja l10n wzgledem definicji ustawien.
+"""Validates the l10n file against the settings definitions.
 
-Wymaga: pip install pyyaml
+Requires: pip install pyyaml
 
-Sprawdza cztery rzeczy, z ktorych kazda juz raz cos zlapala:
-  1. plik jest poprawnym YAML-em (nieocytowany dwukropek w opisie wywala CALY plik,
-     a wraz z nim strone ustawien),
-  2. kazde ustawienie i kazda grupa ma swoj klucz nazwy i opisu,
-  3. nie ma kluczy osieroconych po usunietych ustawieniach,
-  4. podglady uzywaja skladni ICU {name} - NIE %{name} (to drugie renderuje sie jako "%32"),
-     a ich placeholdery zgadzaja sie z tym, co faktycznie podaje slider.lua.
+It checks four things, every one of which has already caught a real bug:
+  1. the file is valid YAML (an unquoted colon inside a description breaks the WHOLE file,
+     and with it the settings page),
+  2. every setting and every group has both a name and a description key,
+  3. no keys are left orphaned after a setting is removed,
+  4. previews use ICU syntax {name} and NOT %{name} (the latter renders literally as "%32"),
+     and their placeholders match what slider.lua actually supplies.
 """
 import os
 import re
@@ -17,7 +17,7 @@ import sys
 import yaml
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-MOD = os.path.dirname(HERE)  # katalog moda = korzen repo
+MOD = os.path.dirname(HERE)  # the mod directory is the repository root
 L10N = os.path.join(MOD, "l10n", "UnarmoredDodge", "en.yaml")
 CONFIG = os.path.join(MOD, "scripts", "unarmored_dodge", "config.lua")
 SLIDER = os.path.join(MOD, "scripts", "unarmored_dodge", "slider.lua")
@@ -34,9 +34,9 @@ def report(ok, message):
 raw = open(L10N, encoding="utf-8").read()
 try:
     data = yaml.safe_load(raw)
-    report(True, f"YAML poprawny, kluczy: {len(data)}")
+    report(True, f"YAML valid, {len(data)} keys")
 except yaml.YAMLError as exc:
-    report(False, f"YAML nie parsuje sie: {exc}")
+    report(False, f"YAML does not parse: {exc}")
     sys.exit(1)
 
 config = open(CONFIG, encoding="utf-8").read()
@@ -47,27 +47,27 @@ for key in re.findall(r"(?:number|checkbox|slider)\('(\w+)'", config):
     needed.update({key, key + "Description"})
 for group in re.findall(r"name = '(\w+)',", config):
     needed.update({group, group + "Description"})
-# pageDescription celowo nie istnieje - strona zaczyna sie od razu od opcji, a `description`
-# w registerPage jest opcjonalne.
+# pageDescription deliberately does not exist - the page opens straight into the options,
+# and `description` is optional in registerPage.
 needed.add("pageName")
 
 previews = {k for k in data if k.startswith("preview_")}
 
-report(not (needed - set(data)), f"brakujace klucze: {sorted(needed - set(data)) or 'brak'}")
+report(not (needed - set(data)), f"missing keys: {sorted(needed - set(data)) or 'none'}")
 report(
     not (set(data) - needed - previews),
-    f"osierocone klucze: {sorted(set(data) - needed - previews) or 'brak'}",
+    f"orphaned keys: {sorted(set(data) - needed - previews) or 'none'}",
 )
 
 bad = [k for k, v in data.items() if isinstance(v, str) and "%{" in v]
-report(not bad, f"placeholdery %{{...}} zamiast {{...}}: {bad or 'brak'}")
+report(not bad, f"%{{...}} placeholders instead of {{...}}: {bad or 'none'}")
 
 def balanced_table(text, open_index):
-    """Zwraca wnetrze tabeli Lua zaczynajacej sie na `open_index`, liczac nawiasy.
+    """Returns the body of the Lua table starting at `open_index`, counting braces.
 
-    Naiwny regex tu nie wystarcza: scenariusz `npc` zawiera zagniezdzona tabele
-    `{ isPlayer = false }` i niedokladne dopasowanie wciagalo jej klucze jako
-    rzekome placeholdery.
+    A naive regex is not enough here: the `npc` scenario contains a nested table
+    `{ isPlayer = false }`, and a sloppy match pulled its keys in as if they were
+    placeholders.
     """
     depth = 0
     for i in range(open_index, len(text)):
@@ -81,7 +81,7 @@ def balanced_table(text, open_index):
 
 
 def top_level_keys(body):
-    """Klucze `nazwa =` tylko z pierwszego poziomu tabeli."""
+    """Top-level `name =` keys only, ignoring nested tables."""
     keys, depth = set(), 0
     for match in re.finditer(r"[{}]|(\w+)\s*=", body):
         token = match.group(0)
@@ -94,7 +94,7 @@ def top_level_keys(body):
     return keys
 
 
-# Co slider.lua faktycznie podaje do kazdego podgladu.
+# What slider.lua actually supplies to each preview.
 supplied = {}
 for header in re.finditer(r"return '(preview_\w+)',\s*\{", slider):
     name = header.group(1)
@@ -104,14 +104,14 @@ for key in sorted(previews):
     used = set(re.findall(r"\{(\w+)\}", data[key]))
     have = supplied.get(key)
     if have is None:
-        report(False, f"{key}: brak scenariusza w slider.lua")
+        report(False, f"{key}: no scenario in slider.lua")
     else:
-        report(used == have, f"{key}: placeholdery {sorted(used)} vs podawane {sorted(have)}")
+        report(used == have, f"{key}: placeholders {sorted(used)} vs supplied {sorted(have)}")
 
 for key in sorted(supplied):
     if key not in data:
-        report(False, f"{key}: scenariusz w slider.lua bez tekstu w l10n")
+        report(False, f"{key}: scenario in slider.lua with no text in l10n")
 
 print()
-print("L10N OK" if not failures else f"BLEDY: {len(failures)}")
+print("L10N OK" if not failures else f"FAILURES: {len(failures)}")
 sys.exit(0 if not failures else 1)

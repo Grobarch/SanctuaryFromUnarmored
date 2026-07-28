@@ -1,15 +1,15 @@
--- Wlasny renderer suwaka dla strony opcji (kontekst MENU).
+-- Our own slider renderer for the settings page (MENU context).
 --
--- Silnik ma tylko textLine/checkbox/number/select/color - suwaka nie ma. Sun's Dusk wozi
--- wspoldzielony "SuperSlider4", ale NIE robimy z niego zaleznosci: gdy renderer o podanym
--- kluczu nie istnieje, psuje sie cala strona ustawien (objaw "unknown renderer", ten sam,
--- ktory wylozyl Quest Markers Plus). Wlasny klucz = zawsze zarejestrowany, zero zaleznosci.
+-- The engine only ships textLine/checkbox/number/select/color - there is no slider. Sun's Dusk
+-- carries a shared "SuperSlider4", but we deliberately do NOT depend on it: when a renderer
+-- with the given key is missing, the whole settings page breaks (the "unknown renderer"
+-- symptom that took down Quest Markers Plus). Our own key is always registered, no dependency.
 --
 -- argument = {
---   min, max, step   - zakres i skok (domyslnie 0 / 100 / 1)
---   width, thickness - rozmiar toru (domyslnie 200 / 15)
---   unit             - sufiks doklejany do wartosci, np. '%' albo 'x'
---   decimals         - miejsca po przecinku w odczycie (domyslnie z kroku)
+--   min, max, step   - range and step (defaults 0 / 100 / 1)
+--   width, thickness - track size (defaults 200 / 15)
+--   unit             - suffix appended to the value, e.g. '%' or 'x'
+--   decimals         - decimal places in the readout (derived from step by default)
 -- }
 
 local async = require('openmw.async')
@@ -21,17 +21,17 @@ local I = require('openmw.interfaces')
 local config = require('scripts.unarmored_dodge.config')
 local formula = require('scripts.unarmored_dodge.formula')
 
--- === Interaktywny podglad ===
+-- === Interactive preview ===
 --
--- Renderer jest wolany od nowa przy KAZDEJ zmianie wartosci (menu.lua:361-371 przerysowuje
--- cala grupe po zapisie do storage), wiec wystarczy policzyc przyklad tutaj, a odswiezy sie
--- sam przy przeciaganiu suwaka.
+-- The renderer is called afresh on EVERY value change (menu.lua:361-371 redraws the whole
+-- group after a write to storage), so it is enough to compute the example here and it will
+-- refresh by itself while the slider is dragged.
 --
--- ⚠ `argument` ustawienia ladzie w storage (common.registerGroup -> argumentSection:set),
--- wiec NIE MOZE zawierac funkcji. Scenariusz podajemy wiec kluczem tekstowym, a same
--- funkcje trzymamy tutaj.
+-- WARNING: a setting's `argument` ends up in storage (common.registerGroup ->
+-- argumentSection:set), so it CANNOT contain functions. The scenario is therefore named by
+-- a string key, and the functions themselves live here.
 local previews = {
-    -- Bez pancerza - dla ustawien opisujacych sama krzywa.
+    -- No armour - for the settings that describe the curve itself.
     bare = function(cfg)
         return 'preview_bare', { points = formula.preview(cfg, 'bare').sanctuary }
     end,
@@ -59,9 +59,9 @@ local previews = {
     end,
 }
 
---- Konfiguracja z podmieniona wartoscia edytowanego ustawienia.
--- W menu glownym (bez wczytanej gry) globalne storage jest niedostepne - wtedy
--- schodzimy na wartosci domyslne, zeby podglad dalej cos pokazywal.
+--- The configuration with the edited setting's value substituted in.
+-- In the main menu (with no game loaded) global storage is unreachable, so we fall back to
+-- the defaults to keep the preview showing something.
 local function previewConfig(key, value)
     local ok, cfg = pcall(config.all)
     if not ok or type(cfg) ~= 'table' then
@@ -235,7 +235,7 @@ I.Settings.registerRenderer(config.SLIDER_RENDERER, function(value, set, rawArgu
     local layout = sliderRow
     local preview = previewLayout(argument, value, I.MWUI.templates.textNormal)
     if preview then
-        -- Suwak plus linijka podgladu pod nim, wyrownana do prawej jak reszta wiersza.
+        -- The slider plus a preview line under it, right-aligned like the rest of the row.
         layout = {
             type = ui.TYPE.Flex,
             props = { horizontal = false, align = ui.ALIGNMENT.End },

@@ -1,11 +1,11 @@
--- Opcjonalny wplyw na armor rating (suwak arMultiplier).
+-- Optional effect on armour rating (the arMultiplier slider).
 --
--- Nadpisujemy I.Combat.getArmorRating lancuchowo - wzorzec z vfs-mw/scripts/omw/combat/local.lua:
--- shallowCopy calego interfejsu, podmiana jednej funkcji, wolanie oryginalu w srodku.
--- Przy arMultiplier = 1.0 funkcja jest czystym przelotem.
+-- I.Combat.getArmorRating is overridden by chaining - the pattern used by
+-- vfs-mw/scripts/omw/combat/local.lua: shallow-copy the whole interface, replace one
+-- function, call the original inside it. At arMultiplier = 1.0 this is a pure pass-through.
 --
--- Uwaga: ruszamy WYLACZNIE warstwe Lua. GMST-y fUnarmoredBase1/2 zostaja nietkniete,
--- wiec autoEquipArmor w C++ dziala waniliowo i NPC nie zaczna zdejmowac pancerzy.
+-- Note: only the Lua layer is touched. The fUnarmoredBase1/2 game settings are left alone,
+-- so autoEquipArmor in C++ behaves exactly as in vanilla and NPCs never strip their armour.
 
 local auxUtil = require('openmw_aux.util')
 local self = require('openmw.self')
@@ -31,7 +31,7 @@ interface.getArmorRating = function(actor)
     if multiplier == 1.0 then
         return rating
     end
-    -- Znamy skladowa tylko dla wlasnego aktora.
+    -- We only know the unarmoured component for our own actor.
     if not isSelf(actor) then
         return rating
     end

@@ -1,12 +1,12 @@
--- Wspolny modul konfiguracji.
+-- Shared configuration module.
 --
--- Wartosci zyja w globalnych sekcjach storage, dzieki czemu czytaja je zarowno skrypty
--- gracza, jak i skrypty lokalne NPC (storage.playerSection bylby niedostepny dla NPC).
--- Zapis idzie przez strone opcji; my tylko czytamy.
+-- Values live in global storage sections so that both player scripts and NPC local scripts
+-- can read them (storage.playerSection would not be reachable from an NPC). Writing is done
+-- by the settings page; we only read.
 --
--- Trzy grupy: balans, pokrycie pancerzem i czestotliwosc odswiezania. Mapa
--- "klucz ustawienia -> sekcja storage" jest WYPROWADZANA z definicji grup, wiec nie da sie
--- jej rozjechac przy dodawaniu ustawien.
+-- Three groups: balance, armour coverage and update frequency. The "setting key -> storage
+-- section" map is DERIVED from the group definitions, so it cannot drift out of sync when
+-- a setting is added.
 
 local storage = require('openmw.storage')
 
@@ -19,15 +19,15 @@ M.GROUP = 'SettingsUnarmoredDodge'
 M.ARMOUR_GROUP = 'SettingsUnarmoredDodgeArmour'
 M.PERF_GROUP = 'SettingsUnarmoredDodgePerformance'
 
--- Wlasny renderer suwaka (rejestrowany przez slider.lua w kontekscie MENU).
+-- Our own slider renderer (registered by slider.lua from a MENU script).
 M.SLIDER_RENDERER = 'UnarmoredDodgeSlider'
 
--- Sekcja z mapowaniem magnituda -> id dynamicznie utworzonego zaklecia.
+-- Section holding the magnitude -> id map of the dynamically created spells.
 M.SPELL_SECTION = 'UnarmoredDodgeSpells'
 
--- Wartosci wystrojone w grze (2026-07-27) i przyjete jako domyslne.
+-- Values tuned in game (2026-07-27) and adopted as the defaults.
 M.defaults = {
-    -- balans
+    -- balance
     maxSanctuary = 40,
     threshold = 20,
     rate = 0.4,
@@ -36,12 +36,12 @@ M.defaults = {
     dodgeXpScale = 0.5,
     statsWindow = true,
     inventoryBar = true,
-    -- pokrycie pancerzem
+    -- armour coverage
     keepLight = 60,
     keepMedium = 40,
     keepHeavy = 20,
     useArmorSkill = true,
-    -- czestotliwosc
+    -- update frequency
     refreshInterval = 1.0,
     npcPeriodicRefresh = true,
     npcRefreshInterval = 10.0,
@@ -70,10 +70,10 @@ local function slider(key, argument)
     return setting(key, M.SLIDER_RENDERER, argument)
 end
 
--- Kazde ustawienie dostaje WLASNA kopie tabeli argumentow - `argument` jest zapisywany
--- do storage per klucz ustawienia, wiec wspoldzielenie jednej tabeli prosi sie o klopoty.
--- `preview` wskazuje scenariusz podgladu (funkcje trzyma slider.lua - do storage nie da sie
--- zapisac funkcji) oraz klucz, ktory ma zostac podmieniony na aktualnie ustawiana wartosc.
+-- Every setting gets its OWN copy of the argument table - `argument` is stored per setting
+-- key, so sharing one table between settings is asking for trouble.
+-- `preview` names the preview scenario (the functions live in slider.lua, because a function
+-- cannot be written to storage) plus the key to substitute with the value being edited.
 local function percent(scenario, key)
     return {
         min = 0, max = 100, step = 5, unit = '%', decimals = 0, width = 170,
@@ -81,7 +81,7 @@ local function percent(scenario, key)
     }
 end
 
--- Definicje grup. Kolejnosc pol `order` decyduje o ukladzie strony.
+-- Group definitions. The `order` fields decide the layout of the page.
 local GROUPS = {
     {
         key = M.GROUP,
@@ -114,8 +114,8 @@ local GROUPS = {
         },
     },
     {
-        -- Tu zostaja pola liczbowe: zakres 0,1-300 s jest za szeroki na suwak, a te wartosci
-        -- ustawia sie raz i chce sie wpisac konkret, nie trafiac w krok.
+        -- These stay as number fields: a 0.1-300 s range is too wide for a slider, and these
+        -- values are set once, where you want to type an exact figure rather than hit a step.
         key = M.PERF_GROUP,
         name = 'perfGroup',
         order = 2,
@@ -127,7 +127,7 @@ local GROUPS = {
     },
 }
 
--- klucz ustawienia -> nazwa sekcji storage
+-- setting key -> storage section name
 local groupOf = {}
 for _, group in ipairs(GROUPS) do
     for _, entry in ipairs(group.settings) do
@@ -135,7 +135,7 @@ for _, group in ipairs(GROUPS) do
     end
 end
 
--- Leniwie, bo skrypty MENU nie moga siegnac do globalnego storage przed startem gry.
+-- Lazily, because MENU scripts cannot reach global storage before a game is running.
 local cache = {}
 local function sectionByName(name)
     if not cache[name] then
@@ -152,7 +152,7 @@ function M.get(key)
     return value
 end
 
---- Caly zestaw ustawien jako zwykla tabela - wygodne do przekazania do formula.lua.
+--- The whole settings set as a plain table - convenient to hand over to formula.lua.
 function M.all()
     local result = {}
     for key in pairs(M.defaults) do
@@ -161,7 +161,7 @@ function M.all()
     return result
 end
 
---- Wszystkie sekcje storage - do subskrypcji zmian.
+--- All storage sections - used to subscribe to changes.
 function M.sections()
     local result = {}
     for _, group in ipairs(GROUPS) do
@@ -170,7 +170,7 @@ function M.sections()
     return result
 end
 
---- Definicje grup gotowe dla I.Settings.registerGroup.
+--- Group definitions ready for I.Settings.registerGroup.
 function M.groupOptions()
     local result = {}
     for i, group in ipairs(GROUPS) do

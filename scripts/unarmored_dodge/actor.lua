@@ -1,7 +1,7 @@
--- Skrypt lokalny kazdego aktora: liczy bonus i utrzymuje nalozona zdolnosc.
+-- Local script on every actor: computes the bonus and maintains the applied ability.
 --
--- Przeliczanie jest zdarzeniowe (wejscie w aktywna strefe, wczytanie, rzadki throttle),
--- nigdy co klatke - onUpdate tylko porownuje znaczniki czasu.
+-- Recalculation is event driven (entering the active zone, loading, a slow throttle) and
+-- never per frame - onUpdate only compares timestamps.
 
 local async = require('openmw.async')
 local core = require('openmw.core')
@@ -17,8 +17,8 @@ local Actor = types.Actor
 local Armor = types.Armor
 local Player = types.Player
 
--- Mapowanie kluczy slotow formula.lua na sloty silnika. Siedzi TU, a nie w formula.lua,
--- bo tamten modul jest celowo wolny od openmw.types (patrz naglowek formula.lua).
+-- Maps formula.lua slot keys onto engine slots. It lives HERE rather than in formula.lua,
+-- because that module is deliberately free of openmw.types (see its header).
 local SLOT_OF = {
     cuirass = Actor.EQUIPMENT_SLOT.Cuirass,
     shield = Actor.EQUIPMENT_SLOT.CarriedLeft,
@@ -31,7 +31,7 @@ local SLOT_OF = {
     rightGauntlet = Actor.EQUIPMENT_SLOT.RightGauntlet,
 }
 
---- Ekwipunek silnika -> mapa kluczy slotow, ktorej oczekuje formula.lua.
+--- Engine equipment -> the slot-key map that formula.lua expects.
 local function bySlotKey(equipment)
     local result = {}
     for key, slot in pairs(SLOT_OF) do
@@ -48,31 +48,31 @@ local applied = 0
 local appliedSpellId = nil
 local lastResult = nil
 local lastSignature = nil
--- ⚠ Znaczniki czasu RZECZYWISTEGO, nie akumulatory dt. Ekwipunek zmienia sie przy otwartym
--- oknie, ktore PAUZUJE gre - onUpdate dostaje wtedy dt = 0, wiec licznik oparty na dt stalby
--- dokladnie w momencie, w ktorym jest potrzebny.
+-- WARNING: REAL time stamps, not dt accumulators. Equipment changes while the inventory
+-- window is open, and that window PAUSES the game - onUpdate then gets dt = 0, so a counter
+-- based on dt would stall at exactly the moment it is needed.
 local lastRefresh = 0
 local lastEquipCheck = 0
 
--- Interwaly sa konfigurowalne, ale NIE czytamy ich ze storage co klatke - to byloby
--- drozsze niz sama praca, ktora ograniczaja. Trzymamy je w cache'u odswiezanym przy
--- kazdym pelnym przeliczeniu (a u gracza dodatkowo natychmiast po zmianie suwaka).
+-- The intervals are configurable, but we do NOT read them from storage every frame - that
+-- would cost more than the work they are limiting. They are cached and refreshed on every
+-- full recalculation (and, for the player, immediately after a setting changes).
 --
--- refreshInterval  - pelne przeliczenie; lapie zmiany UMIEJETNOSCI (trening, fortify/drain).
--- equipCheckInterval - kontrola EKWIPUNKU; silnik nie ma handlera na zalozenie/zdjecie
---   przedmiotu (EngineHandlerList w localscripts.hpp to onActive/onInactive/onConsume/
---   onActivated/onTeleported), wiec zostaje polling. Jest tani: jedno getEquipment
---   i sklejenie 9 identyfikatorow; pelne przeliczenie odpala sie dopiero przy zmianie podpisu.
+-- refreshInterval    - full recalculation; catches SKILL changes (training, fortify, drain).
+-- equipCheckInterval - EQUIPMENT check; the engine has no handler for equipping or removing
+--   an item (EngineHandlerList in localscripts.hpp is onActive/onInactive/onConsume/
+--   onActivated/onTeleported), so polling is the only option. It is cheap: one getEquipment
+--   and nine ids joined into a signature; a full recalculation only fires when it changes.
 --
--- nil w refreshInterval = brak okresowego sprawdzania (NPC z wylaczonym npcPeriodicRefresh)
--- -> zostaja wylacznie onInit i onActive.
+-- nil refreshInterval = no periodic checking at all (an NPC with npcPeriodicRefresh off)
+-- -> only onInit and onActive remain.
 local refreshInterval = nil
 local equipCheckInterval = nil
 
--- Ile razy czesciej niz pelne przeliczenie robimy tani zwiad ekwipunku. NIE jest to
--- ustawienie: rozdzielenie obu interwalow ma sens dopiero przy dlugim `refreshInterval`,
--- a przy domyslnej sekundzie kupowaloby 0,8 s responsywnosci kosztem dwoch suwakow
--- i koniecznosci rozumienia roznicy miedzy dwoma rodzajami odswiezania.
+-- How much more often than a full recalculation the cheap equipment check runs. This is NOT
+-- a setting: separating the two intervals only pays off with a long `refreshInterval`, and at
+-- the default one second it would buy 0.8 s of responsiveness at the price of two more
+-- sliders and of having to understand the difference between two kinds of refresh.
 local EQUIP_CHECK_DIVISOR = 5
 
 local function reloadIntervals(cfg)
@@ -100,7 +100,7 @@ local function armorSkillOf(item)
     return I.Combat.getArmorSkill(item)
 end
 
---- Lekki podpis stanu 9 slotow pancerza - tylko po to, zeby wykryc zmiane.
+--- A light signature of the nine armour slots, used only to detect a change.
 local function equipmentSignature(equipment)
     local parts = {}
     for i, entry in ipairs(formula.SLOT_WEIGHTS) do
@@ -137,8 +137,8 @@ local function applySanctuary(magnitude)
     if magnitude > 0 then
         newId = spellIds:get(tostring(magnitude))
         if not newId then
-            -- Rekord jeszcze nie istnieje (np. podniesiono cap w tej samej klatce).
-            -- Poprosimy o niego i sprobujemy przy nastepnym odswiezeniu.
+            -- The record does not exist yet (e.g. the cap was raised in this very frame).
+            -- Request it and try again on the next refresh.
             core.sendGlobalEvent('UnarmoredDodge_EnsureSpells', { upTo = magnitude })
             return
         end
@@ -153,8 +153,8 @@ local function applySanctuary(magnitude)
     appliedSpellId = newId
 end
 
--- `equipment` mozna podac, gdy wolajacy juz je pobral (kontrola ekwipunku) - unika
--- drugiego przejscia do C++ w tej samej klatce.
+-- `equipment` may be passed in when the caller already fetched it (the equipment check),
+-- which avoids a second trip into C++ within the same frame.
 local function refresh(equipment)
     local cfg = config.all()
     equipment = equipment or Actor.getEquipment(self)
@@ -169,9 +169,9 @@ local function refresh(equipment)
 end
 
 if isPlayer then
-    -- Zmiana suwaka ma dzialac bez restartu. NPC podchwytuja przy najblizszym
-    -- przeliczeniu (reloadIntervals w refresh), a jesli maja wylaczone okresowe
-    -- sprawdzanie - dopiero przy onActive.
+    -- Changing a setting must take effect without a restart. NPCs pick it up at their next
+    -- recalculation (reloadIntervals inside refresh), or at onActive if periodic checking
+    -- is disabled for them.
     local onSettingChanged = async:callback(function() refresh() end)
     for _, section in ipairs(config.sections()) do
         section:subscribe(onSettingChanged)
@@ -183,32 +183,32 @@ return {
     interface = {
         version = 1,
 
-        --- Aktualnie nalozony bonus Sanctuary (punkty).
+        --- The Sanctuary bonus currently applied, in points.
         getBonus = function()
             return applied
         end,
 
-        --- Rozbicie na wklady poszczegolnych slotow - zrodlo danych dla podgladu w UI.
+        --- Per-slot breakdown of the contributions - the data source for the UI readouts.
         getBreakdown = function()
             return lastResult and lastResult.breakdown or {}
         end,
 
-        --- Skladowa armor rating pochodzaca z pustych slotow (uzywa jej armor.lua).
+        --- The armour rating component coming from empty slots (used by armor.lua).
         getArmorComponent = function()
             return lastResult and lastResult.armorComponent or 0
         end,
 
-        --- Wymuszenie przeliczenia.
+        --- Forces a recalculation.
         refresh = function() refresh() end,
     },
     engineHandlers = {
-        -- Opakowane, bo silnik przekazuje do onInit initData - bez tego trafiloby
-        -- ono do parametru `equipment`.
+        -- Wrapped, because the engine passes initData to onInit - without this it would
+        -- land in the `equipment` parameter.
         onInit = function() refresh() end,
         onActive = function() refresh() end,
         onUpdate = function()
-            -- Brak interwalu = okresowe sprawdzanie wylaczone (NPC bez npcPeriodicRefresh).
-            -- Zostaja onInit i onActive; zero pracy na klatke.
+            -- No interval = periodic checking disabled (an NPC without npcPeriodicRefresh).
+            -- Only onInit and onActive remain; zero work per frame.
             if not refreshInterval then return end
 
             local now = core.getRealTime()
@@ -232,8 +232,8 @@ return {
         end,
         onLoad = function(saved)
             if not saved then return end
-            -- Zdolnosc przetrwala w sejwie razem z lista zaklec aktora, wiec musimy
-            -- odtworzyc wiedze o tym, co jest nalozone - inaczej dolozylibysmy druga.
+            -- The ability survived in the save along with the actor's spell list, so we have
+            -- to restore our knowledge of what is applied - otherwise we would add a second.
             applied = saved.applied or 0
             appliedSpellId = saved.spellId
         end,

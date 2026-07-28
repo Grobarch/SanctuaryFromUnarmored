@@ -1,6 +1,6 @@
-# Paczki wydaniowe budowane skryptem
+# Release archives built by hand
 dist/
 
-# Python venv uzywany do testow
+# Python virtualenv used for the tests
 .venv/
 __pycache__/

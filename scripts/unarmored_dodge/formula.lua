@@ -1,17 +1,17 @@
--- Czysty modul obliczeniowy: dostaje opis aktora, zwraca liczby.
+-- Pure calculation module: takes a description of an actor, returns numbers.
 --
--- ⚠ ZERO zaleznosci od pakietow silnika - swiadomie. Skrypty MENU dostaja tylko
--- openmw.core/ambient/ui/menu/input (luabindings.cpp, initMenuPackages), wiec gdyby ten plik
--- wymagal openmw.types, nie dalby sie zaladowac w rendererze strony ustawien i interaktywne
--- podglady bylyby niemozliwe. Sloty sa wiec identyfikowane wlasnymi kluczami tekstowymi,
--- a mapowanie na Actor.EQUIPMENT_SLOT siedzi w actor.lua, ktory typy ma.
+-- WARNING: ZERO dependencies on engine packages, deliberately. MENU scripts only get
+-- openmw.core/ambient/ui/menu/input (luabindings.cpp, initMenuPackages), so if this file
+-- required openmw.types it could not be loaded by the settings page renderer and the
+-- interactive previews would be impossible. Slots are therefore identified by our own string
+-- keys, and the mapping onto Actor.EQUIPMENT_SLOT lives in actor.lua, which does have types.
 --
--- Efekt uboczny: modul da sie odpalic poza gra (patrz tests/).
+-- Side benefit: the module can be run outside the game (see tests/).
 
 local M = {}
 
--- Wagi slotow przepisane z silnika (vfs-mw/scripts/omw/combat/local.lua, getArmorRating).
--- Sumuja sie do 1.0, wiec "caly goly" daje dokladnie dodgeZeSkilla(unarmored).
+-- Slot weights copied from the engine (vfs-mw/scripts/omw/combat/local.lua, getArmorRating).
+-- They add up to 1.0, so a fully bare actor gets exactly dodgeFromSkill(unarmored).
 M.SLOT_WEIGHTS = {
     { key = 'cuirass',       weight = 0.30 },
     { key = 'shield',        weight = 0.10 },
@@ -30,12 +30,12 @@ local function clamp(value, low, high)
     return value
 end
 
---- Ile punktow uniku daje dany poziom umiejetnosci.
+--- How many dodge points a given skill level is worth.
 function M.dodgeFromSkill(skillValue, cfg)
     return math.max(0, (skillValue - cfg.threshold) * cfg.rate)
 end
 
---- Jaka czesc bonusu przezywa noszenie pancerza danej klasy (0..1).
+--- What share of the bonus survives wearing armour of the given class (0..1).
 function M.keepFactor(skillId, cfg)
     if skillId == 'lightarmor' then
         return cfg.keepLight / 100
@@ -47,17 +47,17 @@ function M.keepFactor(skillId, cfg)
     return 1.0
 end
 
---- Glowne wyliczenie.
--- @param params tabela:
---   cfg            - ustawienia (config.all())
+--- The main calculation.
+-- @param params table:
+--   cfg            - settings (config.all())
 --   isPlayer       - boolean
---   equipment      - mapa KLUCZ SLOTU (patrz SLOT_WEIGHTS) -> przedmiot; puste sloty pominiete
+--   equipment      - map of SLOT KEY (see SLOT_WEIGHTS) -> item; empty slots simply omitted
 --   isArmor        - function(item) -> boolean
 --   armorSkillOf   - function(item) -> 'lightarmor' | 'mediumarmor' | 'heavyarmor' | 'unarmored'
 --   skillOf        - function(skillId) -> number
---   unarmoredBase1 - GMST fUnarmoredBase1
---   unarmoredBase2 - GMST fUnarmoredBase2
--- @return tabela: sanctuary (int), raw, armorComponent, breakdown (lista)
+--   unarmoredBase1 - fUnarmoredBase1 game setting
+--   unarmoredBase2 - fUnarmoredBase2 game setting
+-- @return table: sanctuary (int), raw, armorComponent, breakdown (list)
 function M.compute(params)
     local cfg = params.cfg
     local equipment = params.equipment or {}
@@ -69,9 +69,9 @@ function M.compute(params)
     local unarmored = params.skillOf('unarmored') or 0
     local unarmoredPerSlot = (params.unarmoredBase1 * unarmored) * (params.unarmoredBase2 * unarmored)
 
-    -- KAZDY slot punktuje sie z Unarmored. Umiejetnosci pancerza NIGDY nie generuja uniku
-    -- same z siebie - moga go tylko modulowac, i to dopiero wtedy, gdy Unarmored cos daje.
-    -- Postac z Unarmored 7 i Medium Armor 64 dostaje zero, bo zero razy cokolwiek to zero.
+    -- EVERY slot is scored from Unarmored. Armour skills NEVER produce evasion on their own -
+    -- they can only modulate what Unarmored already gave. A character with Unarmored 7 and
+    -- Medium Armor 64 gets nothing, because zero times anything is still zero.
     local baseDodge = M.dodgeFromSkill(unarmored, cfg)
 
     for _, entry in ipairs(M.SLOT_WEIGHTS) do
@@ -81,8 +81,8 @@ function M.compute(params)
             skillId = params.armorSkillOf(item) or 'unarmored'
         end
 
-        -- Biegłosc w noszonym pancerzu: 0 przy skillu 0, pelna przy 100. Przy useArmorSkill
-        -- = false w ogole jej nie liczymy - wtedy pancerz tlumi bonus wylacznie przez keep%.
+        -- Proficiency in the armour worn: 0 at skill 0, full at 100. With useArmorSkill off
+        -- it is not computed at all, and armour then trims the bonus purely through keep%.
         local proficiency = 1
         local armorSkillValue = nil
         if skillId ~= 'unarmored' then
@@ -103,9 +103,9 @@ function M.compute(params)
         breakdown[#breakdown + 1] = {
             key = entry.key,
             weight = entry.weight,
-            skill = skillId,                 -- czym slot jest pokryty
-            skillValue = unarmored,          -- unik zawsze liczy sie z Unarmored
-            armorSkillValue = armorSkillValue, -- poziom skilla noszonego pancerza (nil = slot pusty)
+            skill = skillId,                 -- what covers the slot
+            skillValue = unarmored,          -- evasion is always scored from Unarmored
+            armorSkillValue = armorSkillValue, -- level of the armour skill worn (nil = empty slot)
             proficiency = proficiency,
             contribution = contribution,
         }
@@ -125,8 +125,8 @@ function M.compute(params)
     }
 end
 
---- Gotowe scenariusze do podgladow w ustawieniach i do testow.
--- Zwracaja pare (equipment, skills) opisana KLUCZAMI slotow, wiec nie potrzebuja silnika.
+--- Ready-made scenarios for the settings previews and for the tests.
+-- They return an (equipment, skills) pair described by slot KEYS, so no engine is needed.
 function M.scenario(kind, skillLevel)
     skillLevel = skillLevel or 100
     local equipment = {}
@@ -147,7 +147,7 @@ function M.scenario(kind, skillLevel)
     return equipment, skills
 end
 
---- Uruchomienie scenariusza - jedno miejsce, z ktorego korzystaja podglady i testy.
+--- Runs a scenario - the single code path shared by the previews and the tests.
 function M.preview(cfg, kind, opts)
     opts = opts or {}
     local equipment, skills = M.scenario(kind, opts.skillLevel)

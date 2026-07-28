@@ -1,9 +1,9 @@
-"""Uruchamia test_formula.lua na prawdziwym interpreterze Lua.
+"""Runs test_formula.lua on a real Lua interpreter.
 
-Wymaga: pip install lupa
+Requires: pip install lupa
 
-Harness stubuje openmw.types i wykonuje ORYGINALNY formula.lua z ../UnarmoredDodge,
-wiec testowany jest kod moda, a nie jego kopia.
+No stubs are needed - formula.lua has no engine dependencies, so the mod's ORIGINAL file is
+what gets executed here, not a copy of it.
 """
 import os
 import sys
@@ -11,7 +11,7 @@ import sys
 from lupa import LuaRuntime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-MOD_ROOT = os.path.dirname(HERE)  # katalog moda = korzen repo
+MOD_ROOT = os.path.dirname(HERE)  # the mod directory is the repository root
 
 lua = LuaRuntime(unpack_returned_tuples=True)
 lua.globals().MOD_ROOT = MOD_ROOT.replace("\\", "/")

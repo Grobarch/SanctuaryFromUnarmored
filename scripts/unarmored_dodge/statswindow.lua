@@ -1,8 +1,8 @@
--- Opcjonalna integracja ze Stats Window Extender.
+-- Optional Stats Window Extender integration.
 --
--- Miekka zaleznosc: bez SWE ten plik nie robi nic i nie loguje bledu.
--- Rejestracja idzie z onActive, a nie z ciala pliku, bo kolejnosc ladowania skryptow
--- wzgledem SWE nie jest gwarantowana - w onActive wszystkie interfejsy juz istnieja.
+-- Soft dependency: without SWE this file does nothing and logs no error.
+-- Registration happens from onActive rather than from the file body, because the script load
+-- order relative to SWE is not guaranteed - by onActive all interfaces already exist.
 
 local I = require('openmw.interfaces')
 
@@ -48,7 +48,7 @@ local function buildTooltipText()
         if entry.skill == 'unarmored' then
             lines[#lines + 1] = ('  %s - bare  ->  %.1f'):format(slotLabel, entry.contribution)
         else
-            -- Slot opancerzony: pokazujemy klase pancerza i biegłosc, ktora skalowala wynik.
+            -- Armoured slot: show the armour class and the proficiency that scaled the result.
             lines[#lines + 1] = ('  %s - %s %d (%d%% proficiency)  ->  %.1f'):format(
                 slotLabel,
                 SKILL_LABELS[entry.skill] or entry.skill,

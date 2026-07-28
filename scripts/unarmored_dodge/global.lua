@@ -1,8 +1,9 @@
--- Skrypt globalny: rejestruje grupe ustawien i produkuje rekordy zaklec.
+-- Global script: registers the settings groups and produces the spell records.
 --
--- Dlaczego zaklecia, a nie activeEffects:modify() - modify zapisuje trwala zmiane magnitudy
--- do sejwa i wymaga wlasnej ksiegowosci w onSave/onLoad. Dokladnie tak powstal runaway
--- Strength w Slay's Assassin Mark. Zdjecie ability usuwa efekt bez zadnej ksiegowosci.
+-- Why spells rather than activeEffects:modify() - modify writes a permanent magnitude change
+-- into the save and needs its own bookkeeping in onSave/onLoad. That is exactly how the
+-- runaway Strength bug in Slay's Assassin Mark happened. Removing an ability takes the effect
+-- with it and needs no bookkeeping at all.
 
 local async = require('openmw.async')
 local core = require('openmw.core')
@@ -22,7 +23,7 @@ local function spellExists(id)
     return id ~= nil and core.magic.spells.records[id] ~= nil
 end
 
---- Tworzy brakujace rekordy dla magnitud 1..cap. Wywolywane rzadko (start gry, zmiana capa).
+--- Creates the missing records for magnitudes 1..cap. Called rarely (game start, cap change).
 local function ensureSpells(cap)
     cap = math.floor(cap or 0)
     if cap < 1 then return end
@@ -57,7 +58,7 @@ local function ensureFromConfig()
     ensureSpells(config.get('maxSanctuary'))
 end
 
--- Podniesienie capa w opcjach musi dorobic brakujace rekordy.
+-- Raising the cap in the options has to create the missing records.
 local onSettingChanged = async:callback(function(_, key)
     if key == nil or key == 'maxSanctuary' then
         ensureFromConfig()
@@ -70,12 +71,12 @@ end
 return {
     engineHandlers = {
         onInit = ensureFromConfig,
-        -- Odpalane tez przy wczytaniu sejwa - pokrywa przypadek, w ktorym cap podniesiono
-        -- w innej sesji albo sekcja storage zostala wyczyszczona.
+        -- Also fires when a save is loaded, which covers the cap being raised in another
+        -- session or the storage section having been cleared.
         onPlayerAdded = ensureFromConfig,
     },
     eventHandlers = {
-        -- Awaryjne zadanie ze skryptu lokalnego, gdyby brakowalo rekordu.
+        -- Fallback request from a local script in case a record is missing.
         UnarmoredDodge_EnsureSpells = function(data)
             ensureSpells(data and data.upTo or config.get('maxSanctuary'))
         end,

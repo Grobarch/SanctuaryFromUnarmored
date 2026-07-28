@@ -1,11 +1,11 @@
--- Progresja Unarmored za uniki.
+-- Unarmored progression from dodging.
 --
--- Waniliowo Unarmored rosnie WYLACZNIE z obrywania (Armor_HitByOpponent), wiec mod, ktory
--- sprawia, ze obrywasz rzadziej, spowalnia wlasna progresje. Domykamy petle: kazde pudlo
--- przeciwnika, przy niezerowym bonusie, tez uczy.
+-- In vanilla, Unarmored improves ONLY from being hit (Armor_HitByOpponent), so a mod that
+-- makes you get hit less often slows down its own progression. This closes the loop: with
+-- a non-zero bonus, an attack that misses trains the skill as well.
 --
--- Hook onHit jest tu uzywany WYLACZNIE do odczytu - nie zmieniamy pola `successful`,
--- wiec nie powstaje drugi, niezalezny rzut na unik obok silnikowego.
+-- The onHit hook is used for READING ONLY - the `successful` field is never modified, so no
+-- second, independent dodge roll appears alongside the engine's one.
 
 local I = require('openmw.interfaces')
 
@@ -20,10 +20,10 @@ I.Combat.addOnHitHandler(function(attack)
 
     if not I.UnarmoredDodge or I.UnarmoredDodge.getBonus() <= 0 then return end
 
-    -- Skala 0 = opcja wylaczona. To nie tylko wygoda: Skill Evolution na scale <= 0 robi
-    -- `return false` (skills/handlers.lua:242), co ucina reszte JEGO pipeline'u, w tym
-    -- handler "final" naliczajacy przyrost - czyli i tak zero nauki, tylko z linia w logu
-    -- przy kazdym uniku. Nie wysylamy wiec zdarzenia w ogole.
+    -- Scale 0 means the option is off. This is not just convenience: on scale <= 0 Skill
+    -- Evolution does `return false` (skills/handlers.lua:242), which cuts off the rest of ITS
+    -- pipeline including the "final" handler that applies the gain - so there would be no
+    -- progression anyway, just a log line on every dodge. Better not to send the event.
     local scale = config.get('dodgeXpScale')
     if scale <= 0 then return end
 
