@@ -7,6 +7,7 @@
 # scale. Not registering for them means zero cost on every creature in the world.
 
 MENU: scripts/sanctuary_from_unarmored/slider.lua
+MENU: scripts/sanctuary_from_unarmored/button.lua
 MENU: scripts/sanctuary_from_unarmored/menu.lua
 GLOBAL: scripts/sanctuary_from_unarmored/global.lua
 NPC,PLAYER: scripts/sanctuary_from_unarmored/actor.lua

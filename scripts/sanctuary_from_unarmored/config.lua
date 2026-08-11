@@ -18,9 +18,11 @@ M.L10N = 'SanctuaryFromUnarmored'
 M.GROUP = 'SettingsSanctuaryFromUnarmored'
 M.ARMOUR_GROUP = 'SettingsSanctuaryFromUnarmoredArmour'
 M.PERF_GROUP = 'SettingsSanctuaryFromUnarmoredPerformance'
+M.REMOVAL_GROUP = 'SettingsSanctuaryFromUnarmoredRemoval'
 
--- Our own slider renderer (registered by slider.lua from a MENU script).
+-- Our own renderers (registered from MENU scripts: slider.lua, button.lua).
 M.SLIDER_RENDERER = 'SanctuaryFromUnarmoredSlider'
+M.BUTTON_RENDERER = 'SanctuaryFromUnarmoredButton'
 
 -- Section holding the magnitude -> id map of the dynamically created spells.
 M.SPELL_SECTION = 'SanctuaryFromUnarmoredSpells'
@@ -45,6 +47,20 @@ M.defaults = {
     refreshInterval = 1.0,
     npcPeriodicRefresh = true,
     npcRefreshInterval = 10.0,
+    -- removal
+    uninstallMode = false,
+}
+
+-- What removal mode forces, whatever the sliders say. Neutralising the settings is what
+-- actually takes the ability off: actor.lua computes 0 points and removes it on its next
+-- refresh, for the player and for every actor that is (or becomes) active.
+--
+-- This is deliberately done in config.get, the single place every consumer reads through,
+-- rather than by patching each of them - one bypass and an actor would keep its ability.
+local REMOVAL_OVERRIDES = {
+    maxSanctuary = 0,   -- no bonus at all
+    arMultiplier = 1.0, -- armour rating back to vanilla
+    dodgeXpScale = 0,   -- stop feeding skill progression
 }
 
 local function setting(key, renderer, argument)
@@ -68,6 +84,12 @@ end
 
 local function slider(key, argument)
     return setting(key, M.SLIDER_RENDERER, argument)
+end
+
+-- A boolean setting drawn as a button rather than a checkbox: the l10n keys name the label
+-- for each state, so one setting covers both "remove" and "undo".
+local function button(key, argument)
+    return setting(key, M.BUTTON_RENDERER, argument)
 end
 
 -- Every setting gets its OWN copy of the argument table - `argument` is stored per setting
@@ -125,6 +147,18 @@ local GROUPS = {
             number('npcRefreshInterval', { min = 0.1, max = 300 }),
         },
     },
+    {
+        key = M.REMOVAL_GROUP,
+        name = 'removalGroup',
+        order = 3,
+        settings = {
+            button('uninstallMode', {
+                offLabel = 'uninstallModeOff',
+                onLabel = 'uninstallModeOn',
+                onNote = 'uninstallModeNote',
+            }),
+        },
+    },
 }
 
 -- setting key -> storage section name
@@ -144,12 +178,25 @@ local function sectionByName(name)
     return cache[name]
 end
 
-function M.get(key)
+local function rawGet(key)
     local value = sectionByName(groupOf[key] or M.GROUP):get(key)
     if value == nil then
         return M.defaults[key]
     end
     return value
+end
+
+--- True while the player has pressed the removal button and not undone it.
+function M.isRemovalMode()
+    return rawGet('uninstallMode') == true
+end
+
+function M.get(key)
+    local override = REMOVAL_OVERRIDES[key]
+    if override ~= nil and M.isRemovalMode() then
+        return override
+    end
+    return rawGet(key)
 end
 
 --- The whole settings set as a plain table - convenient to hand over to formula.lua.

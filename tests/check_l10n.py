@@ -43,20 +43,33 @@ config = open(CONFIG, encoding="utf-8").read()
 slider = open(SLIDER, encoding="utf-8").read()
 
 needed = set()
-for key in re.findall(r"(?:number|checkbox|slider)\('(\w+)'", config):
+for key in re.findall(r"(?:number|checkbox|slider|button)\('(\w+)'", config):
     needed.update({key, key + "Description"})
 for group in re.findall(r"name = '(\w+)',", config):
     needed.update({group, group + "Description"})
+# Labels a renderer looks up by itself, named in the setting's argument (the button's captions).
+needed.update(re.findall(r"(?:offLabel|onLabel|onNote) = '(\w+)'", config))
 # pageDescription deliberately does not exist - the page opens straight into the options,
 # and `description` is optional in registerPage.
 needed.add("pageName")
 
 previews = {k for k in data if k.startswith("preview_")}
+# Runtime messages (ui.showMessage) - checked against the scripts rather than the settings.
+messages = {k for k in data if k.startswith("msg_")}
+scripts = os.path.join(MOD, "scripts", "sanctuary_from_unarmored")
+used_messages = set()
+for name in os.listdir(scripts):
+    source = open(os.path.join(scripts, name), encoding="utf-8").read()
+    used_messages.update(re.findall(r"'(msg_\w+)'", source))
+report(
+    messages == used_messages,
+    f"messages in l10n vs used in scripts: {sorted(messages ^ used_messages) or 'match'}",
+)
 
 report(not (needed - set(data)), f"missing keys: {sorted(needed - set(data)) or 'none'}")
 report(
-    not (set(data) - needed - previews),
-    f"orphaned keys: {sorted(set(data) - needed - previews) or 'none'}",
+    not (set(data) - needed - previews - messages),
+    f"orphaned keys: {sorted(set(data) - needed - previews - messages) or 'none'}",
 )
 
 bad = [k for k, v in data.items() if isinstance(v, str) and "%{" in v]

@@ -80,6 +80,26 @@ npcPeriodicRefreshDescription: |-
 npcRefreshInterval: NPC - full recalculation (s)
 npcRefreshIntervalDescription: Ignored when periodic updates for NPCs are off.
 
+# --- Removal -----------------------------------------------------------------------------
+removalGroup: Removal
+removalGroupDescription: |-
+  Only needed when you are deleting the mod. The ability it grants is applied by a script, so
+  while the mod is gone nothing is left to take it off again.
+
+uninstallMode: Remove this mod's effects
+uninstallModeDescription: |-
+  Switches everything off - no bonus, armour rating back to vanilla, no skill gain from
+  dodging - and strips the ability from you and from every actor currently loaded. Press it,
+  save, and the mod is safe to delete.
+  Nobody else in the world is carrying it: the bonus is taken off actors as they leave your
+  surroundings, so it only ever exists near you.
+uninstallModeOff: Remove now
+uninstallModeOn: Undo - turn the mod back on
+uninstallModeNote: Effects are off. Save now, then delete the mod.
+
+# --- Messages ------------------------------------------------------------------------------
+msg_removalDone: "Sanctuary From Unarmored: bonus taken off {count} nearby actors. Save now, then delete the mod."
+
 # --- Live previews under the sliders (ICU placeholders: {name}, no percent sign) -----------
 preview_bare: "Unarmoured, skill 100  ->  {points} pts"
 preview_light: "Full light armour, skills 100  ->  {points} pts"

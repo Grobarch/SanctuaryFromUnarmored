@@ -153,6 +153,33 @@ local function applySanctuary(magnitude)
     appliedSpellId = newId
 end
 
+--- Takes off any ability of OURS that we do not believe is currently applied.
+--
+-- Self-healing, and the reason a stale bonus cannot outlive a visit: only a script that knows
+-- the record id can remove an ability, so anything left behind by an earlier session (a crash,
+-- or a version whose bookkeeping did not survive) would otherwise sit on the actor for good.
+-- Runs on activation only, i.e. once per actor per visit.
+local function purgeStrays()
+    local ours = {}
+    for _, id in pairs(spellIds:asTable()) do
+        ours[id] = true
+    end
+
+    local doomed
+    for _, spell in pairs(Actor.spells(self)) do
+        if ours[spell.id] and spell.id ~= appliedSpellId then
+            doomed = doomed or {}
+            doomed[#doomed + 1] = spell.id
+        end
+    end
+    if not doomed then return end
+
+    -- Collected first: removing while iterating the actor's own spell list is asking for it.
+    for _, id in ipairs(doomed) do
+        removeSpell(id)
+    end
+end
+
 -- `equipment` may be passed in when the caller already fetched it (the equipment check),
 -- which avoids a second trip into C++ within the same frame.
 local function refresh(equipment)
@@ -204,8 +231,16 @@ return {
     engineHandlers = {
         -- Wrapped, because the engine passes initData to onInit - without this it would
         -- land in the `equipment` parameter.
-        onInit = function() refresh() end,
-        onActive = function() refresh() end,
+        onInit = function() purgeStrays() refresh() end,
+        onActive = function() purgeStrays() refresh() end,
+        -- The bonus is taken off on the way out, and that is what keeps it from spreading
+        -- across the world: at any moment it exists only on actors inside the active grid.
+        -- Nothing is lost by it - Sanctuary is read by the engine's hit chance calculation,
+        -- and an inactive actor is not fighting anybody.
+        --
+        -- It also bounds what an uninstall can leave behind to exactly the set the removal
+        -- button reaches (world.activeActors), instead of every NPC ever met.
+        onInactive = function() applySanctuary(0) end,
         onUpdate = function()
             -- No interval = periodic checking disabled (an NPC without npcPeriodicRefresh).
             -- Only onInit and onActive remain; zero work per frame.

@@ -134,10 +134,15 @@ Updating: replace the folder. Nothing has to be done to an existing save — but
 
 ## Configuration
 
-Options → Scripts → **Sanctuary From Unarmored**, three groups: **Balance**, **Armour coverage** and
-**Update frequency**. Nothing is hard-coded — `formula.lua` reads only what the configuration
-hands it. Changes take effect immediately, with no restart (player); NPCs catch up within
-~10 s.
+Options → Scripts → **Sanctuary From Unarmored**, four groups: **Balance**, **Armour coverage**,
+**Update frequency** and **Removal**. Nothing is hard-coded — `formula.lua` reads only what the
+configuration hands it. Changes take effect immediately, with no restart (player); NPCs catch up
+within ~10 s.
+
+⚠ **The bonus is granted by a runtime ability, so it outlives the mod.** Delete the files while
+it is applied and it stays applied — there is no script left to take it off. It only ever sits on
+you and on whoever is loaded around you, which is exactly what the **Removal** group clears in one
+click; read [Uninstalling](#uninstalling) before you remove anything.
 
 Defaults (tuned in game, not picked out of thin air):
 
@@ -162,9 +167,12 @@ scripts/sanctuary_from_unarmored/
                    keys, because MENU scripts do not get `openmw.types` and the settings
                    previews could not be computed otherwise
   slider.lua       MENU   - our own slider renderer
+  button.lua       MENU   - our own button renderer (the Removal switch)
   menu.lua         MENU   - registration of the options page (the global Settings
                             interface only exposes registerGroup)
-  global.lua       GLOBAL - settings groups plus the lazy spell-record factory
+  global.lua       GLOBAL - settings groups, the lazy spell-record factory, and the
+                            removal sweep (only a global script may take a spell off
+                            somebody else)
   actor.lua        NPC,PLAYER - recalculation and application of the ability
   armor.lua        NPC,PLAYER - optional I.Combat.getArmorRating override
   player.lua       PLAYER - Unarmored progression from dodging
@@ -220,6 +228,7 @@ the Inventory Extender bar would not budge until you closed the inventory.
 | Full recalculation — **configurable** | 1 s | 10 s |
 | Equipment check — **derived** as ⅕ of the above | 0.2 s | 2 s |
 | `onInit`, `onActive` (entering the active zone, loading a save) | always | always |
+| `onInactive` (leaving the active zone) — ability taken off | n/a | always |
 | A setting changed | immediately (player) | at the next recalculation |
 
 The equipment-check interval **is not a setting**. Separating it from the full recalculation
@@ -254,9 +263,48 @@ No ESP, no config regeneration.
 
 ## Uninstalling
 
-Records created at runtime stay in the save, so **remove the ability before removing the mod**:
-set `Maximum Sanctuary` to `0`, wait a moment (the player refreshes once a second), save the
-game, and only then delete the `data=` and `content=` lines.
+Deleting the mod cannot break a save. The ability records it creates are written into the save
+like any other dynamic record (`ESM::Spell` is in `ESMStore::write`), and anything the engine
+cannot resolve on load is discarded without complaint — `Spells::readState` skips unknown ids
+outright ("Discard spells that are no longer available due to changed content files"). No game
+settings are touched, no records edited, nothing to orphan in the load order.
+
+What it does leave behind is the applied ability itself. Hence the button:
+
+1. Options → Scripts → Sanctuary From Unarmored → **Removal** → **Remove now**.
+2. Save.
+3. Delete the `data=` and `content=` lines.
+
+Pressing it neutralises every setting (no bonus, vanilla armour rating, no skill gain) and
+immediately strips the ability from you and from every actor currently loaded. **Undo** puts
+the mod back exactly as it was — the spell records are still there, so nothing has to be rebuilt.
+
+That is the whole job, because **nobody outside your surroundings is carrying the bonus in the
+first place** — see below.
+
+### Why nothing is left scattered around the world
+
+The ability is applied on `onActive` and taken off again on `onInactive`, so at any moment it
+exists only on actors inside the active grid. Nothing is lost by that: Sanctuary is read by the
+engine's hit-chance calculation, and an inactive actor is not fighting anyone.
+
+This is a deliberate design constraint rather than an optimisation. The alternative — leaving
+the ability on and cleaning up later — cannot be undone at uninstall time, because **a script
+that does not know a record id cannot remove that ability**, and reaching every actor in the
+world is not an option:
+
+- `types.Actor.spells(actor)` builds the actor's `CustomData`,
+- `RefData::setCustomData` sets `mChanged = true` ("assume anything with a CustomData is
+  changed"),
+- `writeReferenceCollection` skips only *unchanged* references.
+
+So walking `world.cells` to reach everybody would serialise **every NPC in the game** into the
+player's save, permanently. Scoping the ability to active actors avoids the problem instead of
+paying for it.
+
+On top of that, `onActive` strips any ability of ours the actor still carries but that we do not
+consider applied — so a save that went through a crash, or an older version, heals itself as you
+travel.
 
 ## Checking it in game
 

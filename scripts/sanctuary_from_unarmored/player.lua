@@ -7,6 +7,8 @@
 -- The onHit hook is used for READING ONLY - the `successful` field is never modified, so no
 -- second, independent dodge roll appears alongside the engine's one.
 
+local core = require('openmw.core')
+local ui = require('openmw.ui')
 local I = require('openmw.interfaces')
 
 local config = require('scripts.sanctuary_from_unarmored.config')
@@ -34,3 +36,15 @@ I.Combat.addOnHitHandler(function(attack)
         })
     end
 end)
+
+return {
+    eventHandlers = {
+        -- Reported by the global script after the removal button was pressed, so the player
+        -- gets told what happened instead of having to trust an unlabelled switch.
+        SanctuaryFromUnarmored_Removed = function(data)
+            ui.showMessage(core.l10n(config.L10N)('msg_removalDone', {
+                count = (data and data.count) or 0,
+            }))
+        end,
+    },
+}

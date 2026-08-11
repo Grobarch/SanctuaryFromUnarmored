@@ -2,6 +2,10 @@
 
 [b]Unarmored gives you evasion, not just armour rating.[/b] The skill is converted into a scaled Sanctuary effect, so a trained unarmoured character is actually harder to hit. OpenMW 0.51+, Lua only, no ESP, no game settings touched.
 
+I always felt that Unarmored should be a complementary skill to the other armour skills, and one focused on avoiding damage rather than soaking it. That was the main goal.
+
+If that does not convince you, the Sanctuary bonus can be turned off entirely, leaving the mod as a safe way to tweak the Unarmored armour rating - without undressing NPCs. So there is something here either way.
+
 [line]
 
 [size=4][b]The problem[/b][/size]
@@ -29,11 +33,12 @@ At the default settings, a bare character with Unarmored 100 gets 32 points of S
 [*][b]Unarmored trains from dodging.[/b] In vanilla the skill only improves when you get hit, so a working dodge slows down its own progression. A missed attack now trains it too, scaled against a blow that landed. Set the scale to 0 to turn this off.
 [*][b]Optional armour rating multiplier[/b] for the Unarmored component, if you want the vanilla side buffed as well. Still no game settings involved, so NPCs keep dressing normally.
 [*][b]Live previews in the options.[/b] Every balance slider has a line under it that recalculates as you drag it, so you can see what a setting does before you leave the menu.
+[*][b]A one-click removal button[/b], so the mod can be taken out cleanly instead of leaving its effect behind on whoever happened to be nearby.
 [/list]
 
 [size=4][b]Configuration[/b][/size]
 
-Options -> Scripts -> Sanctuary From Unarmored. Three groups: [b]Balance[/b], [b]Armour coverage[/b] and [b]Update frequency[/b]. Nothing is hard-coded; changes apply immediately, with no restart.
+Options -> Scripts -> Sanctuary From Unarmored. Four groups: [b]Balance[/b], [b]Armour coverage[/b], [b]Update frequency[/b] and [b]Removal[/b]. Nothing is hard-coded; changes apply immediately, with no restart.
 
 [size=4][b]Requirements[/b][/size]
 
@@ -51,7 +56,19 @@ No dependency on any other mod.
 
 Load order does not matter — the mod adds no records that anything could override.
 
-[b]Uninstalling:[/b] the mod creates its ability records at runtime, so set [i]Maximum Sanctuary[/i] to 0 first, wait a second, save, and only then remove the mod.
+[size=4][b]Uninstalling[/b][/size]
+
+The bonus is granted by an ability that a script applies, so it wants taking off before the script goes away. There is a button for exactly that:
+
+[list=1]
+[*]Options -> Scripts -> Sanctuary From Unarmored -> [b]Removal[/b] -> [b]Remove now[/b]
+[*]Save.
+[*]Delete the mod.
+[/list]
+
+It switches everything off and strips the ability from you and from every actor loaded around you, and tells you how many it took off. [b]Undo[/b] puts the mod back exactly as it was.
+
+Nobody further out is carrying it either: the ability is taken off actors as they leave your surroundings, so it only ever exists near you. And deleting the mod is safe in any case — it adds nothing to your load order, edits no records, touches no game settings, and anything the engine cannot resolve on load is simply discarded.
 
 [size=4][b]Optional integrations[/b][/size]
 
@@ -69,7 +86,7 @@ Detected at runtime — none of them is required, and nothing errors if they are
 
 Two earlier mods set the reference point for the numbers here: [url=https://www.nexusmods.com/morrowind/mods/51332]Unarmored Dodge[/url] by RogiVagel and [url=https://www.nexusmods.com/morrowind/mods/55758]Unarmored Makes You Dodge[/url] by Seneb-Nelldrak. If you are on MWSE, or you want the simpler version of this idea, go and use theirs.
 
-[b]This is an independent implementation and shares no code with either[/b] — it is written for OpenMW's Lua API, it scores evasion from Unarmored only, it covers NPCs, and it leaves the game settings alone.
+[b]This is an independent implementation and shares no code with either[/b] — it is written for OpenMW’s Lua API, it scores evasion from Unarmored only, it covers NPCs, and it leaves the game settings alone.
 
 Thanks to the OpenMW team, whose move of combat into Lua made this approach possible at all.
 
