@@ -3,7 +3,7 @@
 
 local I = require('openmw.interfaces')
 
-local config = require('scripts.unarmored_dodge.config')
+local config = require('scripts.sanctuary_from_unarmored.config')
 
 -- No `description`: the page should open straight into the options, not into a lecture.
 I.Settings.registerPage({

@@ -10,8 +10,8 @@ local storage = require('openmw.storage')
 local types = require('openmw.types')
 local I = require('openmw.interfaces')
 
-local config = require('scripts.unarmored_dodge.config')
-local formula = require('scripts.unarmored_dodge.formula')
+local config = require('scripts.sanctuary_from_unarmored.config')
+local formula = require('scripts.sanctuary_from_unarmored.formula')
 
 local Actor = types.Actor
 local Armor = types.Armor
@@ -139,7 +139,7 @@ local function applySanctuary(magnitude)
         if not newId then
             -- The record does not exist yet (e.g. the cap was raised in this very frame).
             -- Request it and try again on the next refresh.
-            core.sendGlobalEvent('UnarmoredDodge_EnsureSpells', { upTo = magnitude })
+            core.sendGlobalEvent('SanctuaryFromUnarmored_EnsureSpells', { upTo = magnitude })
             return
         end
     end
@@ -179,7 +179,7 @@ if isPlayer then
 end
 
 return {
-    interfaceName = 'UnarmoredDodge',
+    interfaceName = 'SanctuaryFromUnarmored',
     interface = {
         version = 1,
 

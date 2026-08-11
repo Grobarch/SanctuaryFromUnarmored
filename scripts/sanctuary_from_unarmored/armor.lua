@@ -11,7 +11,7 @@ local auxUtil = require('openmw_aux.util')
 local self = require('openmw.self')
 local I = require('openmw.interfaces')
 
-local config = require('scripts.unarmored_dodge.config')
+local config = require('scripts.sanctuary_from_unarmored.config')
 
 local base = auxUtil.shallowCopy(I.Combat)
 local interface = auxUtil.shallowCopy(I.Combat)
@@ -37,8 +37,8 @@ interface.getArmorRating = function(actor)
     end
 
     local component = 0
-    if I.UnarmoredDodge then
-        component = I.UnarmoredDodge.getArmorComponent()
+    if I.SanctuaryFromUnarmored then
+        component = I.SanctuaryFromUnarmored.getArmorComponent()
     end
 
     return rating + (multiplier - 1.0) * component

@@ -9,7 +9,7 @@
 
 local I = require('openmw.interfaces')
 
-local config = require('scripts.unarmored_dodge.config')
+local config = require('scripts.sanctuary_from_unarmored.config')
 
 I.Combat.addOnHitHandler(function(attack)
     if attack.successful then return end
@@ -18,7 +18,7 @@ I.Combat.addOnHitHandler(function(attack)
     local sourceType = attack.sourceType
     if sourceType ~= 'melee' and sourceType ~= 'ranged' then return end
 
-    if not I.UnarmoredDodge or I.UnarmoredDodge.getBonus() <= 0 then return end
+    if not I.SanctuaryFromUnarmored or I.SanctuaryFromUnarmored.getBonus() <= 0 then return end
 
     -- Scale 0 means the option is off. This is not just convenience: on scale <= 0 Skill
     -- Evolution does `return false` (skills/handlers.lua:242), which cuts off the rest of ITS

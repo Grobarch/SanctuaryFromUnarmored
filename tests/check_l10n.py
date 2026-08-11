@@ -18,9 +18,9 @@ import yaml
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MOD = os.path.dirname(HERE)  # the mod directory is the repository root
-L10N = os.path.join(MOD, "l10n", "UnarmoredDodge", "en.yaml")
-CONFIG = os.path.join(MOD, "scripts", "unarmored_dodge", "config.lua")
-SLIDER = os.path.join(MOD, "scripts", "unarmored_dodge", "slider.lua")
+L10N = os.path.join(MOD, "l10n", "SanctuaryFromUnarmored", "en.yaml")
+CONFIG = os.path.join(MOD, "scripts", "sanctuary_from_unarmored", "config.lua")
+SLIDER = os.path.join(MOD, "scripts", "sanctuary_from_unarmored", "slider.lua")
 
 failures = []
 

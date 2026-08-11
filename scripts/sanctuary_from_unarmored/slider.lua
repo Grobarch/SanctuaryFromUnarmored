@@ -18,8 +18,8 @@ local ui = require('openmw.ui')
 local util = require('openmw.util')
 local I = require('openmw.interfaces')
 
-local config = require('scripts.unarmored_dodge.config')
-local formula = require('scripts.unarmored_dodge.formula')
+local config = require('scripts.sanctuary_from_unarmored.config')
+local formula = require('scripts.sanctuary_from_unarmored.formula')
 
 -- === Interactive preview ===
 --

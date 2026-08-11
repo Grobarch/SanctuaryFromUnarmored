@@ -6,7 +6,7 @@
 
 local I = require('openmw.interfaces')
 
-local config = require('scripts.unarmored_dodge.config')
+local config = require('scripts.sanctuary_from_unarmored.config')
 
 local SLOT_LABELS = {
     cuirass = 'Cuirass',
@@ -27,13 +27,13 @@ local SKILL_LABELS = {
     heavyarmor = 'heavy',
 }
 
-local LINE_ID = 'unarmoredDodge'
+local LINE_ID = 'sanctuaryFromUnarmored'
 
 local registered = false
 
 local function buildTooltipText()
-    local bonus = I.UnarmoredDodge and I.UnarmoredDodge.getBonus() or 0
-    local breakdown = I.UnarmoredDodge and I.UnarmoredDodge.getBreakdown() or {}
+    local bonus = I.SanctuaryFromUnarmored and I.SanctuaryFromUnarmored.getBonus() or 0
+    local breakdown = I.SanctuaryFromUnarmored and I.SanctuaryFromUnarmored.getBreakdown() or {}
 
     local lines = {
         ('Sanctuary from Unarmored: %d point(s).'):format(bonus),
@@ -64,7 +64,7 @@ end
 local function register()
     if registered then return end
     if not I.StatsWindow then return end
-    if not I.UnarmoredDodge then return end
+    if not I.SanctuaryFromUnarmored then return end
 
     local C = I.StatsWindow.Constants
 
@@ -75,7 +75,7 @@ local function register()
             return config.get('statsWindow')
         end,
         value = function()
-            return { string = tostring(I.UnarmoredDodge.getBonus()) }
+            return { string = tostring(I.SanctuaryFromUnarmored.getBonus()) }
         end,
         tooltip = function()
             return I.StatsWindow.TooltipBuilders.TEXT({ text = buildTooltipText(), width = 340 })

@@ -1,0 +1,16 @@
+# Sanctuary From Unarmored
+# A Sanctuary effect scaled from the Unarmored skill (and, to a lesser extent, from
+# Light/Medium/Heavy Armor). Lua-only, requires OpenMW >= 0.51 (the I.Combat interface).
+#
+# No CREATURE: creatures have no real Unarmored skill (the engine derives their value from
+# a specialisation) and get no vanilla armour rating from it either, so there is nothing to
+# scale. Not registering for them means zero cost on every creature in the world.
+
+MENU: scripts/sanctuary_from_unarmored/slider.lua
+MENU: scripts/sanctuary_from_unarmored/menu.lua
+GLOBAL: scripts/sanctuary_from_unarmored/global.lua
+NPC,PLAYER: scripts/sanctuary_from_unarmored/actor.lua
+NPC,PLAYER: scripts/sanctuary_from_unarmored/armor.lua
+PLAYER: scripts/sanctuary_from_unarmored/player.lua
+PLAYER: scripts/sanctuary_from_unarmored/statswindow.lua
+PLAYER: scripts/sanctuary_from_unarmored/inventorybar.lua

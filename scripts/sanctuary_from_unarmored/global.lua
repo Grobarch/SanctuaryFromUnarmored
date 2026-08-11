@@ -11,7 +11,7 @@ local storage = require('openmw.storage')
 local world = require('openmw.world')
 local I = require('openmw.interfaces')
 
-local config = require('scripts.unarmored_dodge.config')
+local config = require('scripts.sanctuary_from_unarmored.config')
 
 for _, group in ipairs(config.groupOptions()) do
     I.Settings.registerGroup(group)
@@ -33,7 +33,9 @@ local function ensureSpells(cap)
         local key = tostring(magnitude)
         if not spellExists(spells:get(key)) then
             local draft = core.magic.spells.createRecordDraft({
-                name = 'Unarmored Dodge',
+                -- Short on purpose: this is what shows in the magic window and in the active
+                -- effects tooltip, next to a stats line already labelled "Dodge".
+                name = 'Dodge',
                 type = core.magic.SPELL_TYPE.Ability,
                 cost = 0,
                 isAutocalc = false,
@@ -77,7 +79,7 @@ return {
     },
     eventHandlers = {
         -- Fallback request from a local script in case a record is missing.
-        UnarmoredDodge_EnsureSpells = function(data)
+        SanctuaryFromUnarmored_EnsureSpells = function(data)
             ensureSpells(data and data.upTo or config.get('maxSanctuary'))
         end,
     },

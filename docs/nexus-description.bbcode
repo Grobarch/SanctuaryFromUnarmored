@@ -1,0 +1,78 @@
+[size=5][b]Sanctuary From Unarmored[/b][/size]
+
+[b]Unarmored gives you evasion, not just armour rating.[/b] The skill is converted into a scaled Sanctuary effect, so a trained unarmoured character is actually harder to hit. OpenMW 0.51+, Lua only, no ESP, no game settings touched.
+
+[line]
+
+[size=4][b]The problem[/b][/size]
+
+Vanilla Unarmored grants [i]0.0065 x skill²[/i] armour rating per slot. At skill 30 that is 5.85 — effectively nothing for the first 60 or so skill levels, and never anything beyond armour rating.
+
+The classic fix is to raise the [i]fUnarmoredBase1/2[/i] game settings, which has a well-known side effect: NPCs stop putting on weak armour. That is not a mod bug, it is the engine — [i]autoEquipArmor[/i] rejects every piece of armour worse than the unarmoured rating computed from exactly those settings.
+
+[b]This mod changes no game setting at all[/b], so nobody strips down.
+
+[size=4][b]What it does[/b][/size]
+
+Unarmored is converted into Sanctuary points. One point of Sanctuary is one percentage point off the attacker's chance to hit, so the bonus applies to melee and missiles but not to spells — exactly like vanilla Sanctuary.
+
+Armour does not switch the bonus off, it trims it. Every slot is scored with its own armour skill and a configurable share, and slots carry their vanilla weights: cuirass 30%, shield / helmet / greaves / boots / each pauldron 10%, each gauntlet 5%.
+
+[b]Evasion always comes from Unarmored.[/b] Armour skills never produce it on their own — they only modulate what Unarmored already gave. A guard in full armour with no Unarmored training dodges nothing. This is the part most mods of this kind get backwards.
+
+At the default settings, a bare character with Unarmored 100 gets 32 points of Sanctuary; the same character in a full light armour set with Light Armor 100 gets 19.
+
+[size=4][b]Also included[/b][/size]
+
+[list]
+[*][b]NPCs get the bonus too[/b], with a separate share. The effect is passive, so it works in NPC-versus-NPC fights as well.
+[*][b]Unarmored trains from dodging.[/b] In vanilla the skill only improves when you get hit, so a working dodge slows down its own progression. A missed attack now trains it too, scaled against a blow that landed. Set the scale to 0 to turn this off.
+[*][b]Optional armour rating multiplier[/b] for the Unarmored component, if you want the vanilla side buffed as well. Still no game settings involved, so NPCs keep dressing normally.
+[*][b]Live previews in the options.[/b] Every balance slider has a line under it that recalculates as you drag it, so you can see what a setting does before you leave the menu.
+[/list]
+
+[size=4][b]Configuration[/b][/size]
+
+Options -> Scripts -> Sanctuary From Unarmored. Three groups: [b]Balance[/b], [b]Armour coverage[/b] and [b]Update frequency[/b]. Nothing is hard-coded; changes apply immediately, with no restart.
+
+[size=4][b]Requirements[/b][/size]
+
+[b]OpenMW 0.51 or newer.[/b] The mod uses the I.Combat Lua interface, which arrived when combat mechanics moved into Lua. It will not work on 0.49 or 0.50, and it is not compatible with MWSE — this is an OpenMW mod.
+
+No dependency on any other mod.
+
+[size=4][b]Installation[/b][/size]
+
+[list=1]
+[*]Unpack the archive outside your Morrowind folder.
+[*]Launcher -> Data Files -> Data Directories -> Append -> select the [i]SanctuaryFromUnarmored[/i] folder.
+[*]In the same tab, tick [i]sanctuary-from-unarmored.omwscripts[/i] in the content list.
+[/list]
+
+Load order does not matter — the mod adds no records that anything could override.
+
+[b]Uninstalling:[/b] the mod creates its ability records at runtime, so set [i]Maximum Sanctuary[/i] to 0 first, wait a second, save, and only then remove the mod.
+
+[size=4][b]Optional integrations[/b][/size]
+
+Detected at runtime — none of them is required, and nothing errors if they are absent.
+
+[list]
+[*][b]Stats Window Extender[/b] — a Dodge line in the character window, with a per-slot tooltip.
+[*][b]Inventory Extender[/b] — the bonus shown next to armour rating on the inventory bar.
+[*][b]Skill Evolution[/b] — dodge progression goes through the standard skill progression interface, so SE keeps setting the pace.
+[/list]
+
+[b]Natural Character Growth[/b] works, but is not neutral: NCG grows attributes from skill gains, so dodge progression also feeds Speed, Agility, Endurance and Personality. Worth knowing when tuning the skill gain option.
+
+[size=4][b]Credits[/b][/size]
+
+Two earlier mods set the reference point for the numbers here: [url=https://www.nexusmods.com/morrowind/mods/51332]Unarmored Dodge[/url] by RogiVagel and [url=https://www.nexusmods.com/morrowind/mods/55758]Unarmored Makes You Dodge[/url] by Seneb-Nelldrak. If you are on MWSE, or you want the simpler version of this idea, go and use theirs.
+
+[b]This is an independent implementation and shares no code with either[/b] — it is written for OpenMW's Lua API, it scores evasion from Unarmored only, it covers NPCs, and it leaves the game settings alone.
+
+Thanks to the OpenMW team, whose move of combat into Lua made this approach possible at all.
+
+[size=4][b]Source and licence[/b][/size]
+
+MIT licence — patches, forks and redistribution are all fine, just keep the copyright notice. Source, issue tracker and the full technical write-up: [url=https://github.com/Grobarch/SanctuaryFromUnarmored]github.com/Grobarch/SanctuaryFromUnarmored[/url]

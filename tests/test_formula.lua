@@ -4,7 +4,7 @@
 -- there are no stubs here at all - the mod's real code is what gets executed.
 
 package.path = MOD_ROOT .. '/?.lua;' .. package.path
-local formula = require('scripts.unarmored_dodge.formula')
+local formula = require('scripts.sanctuary_from_unarmored.formula')
 
 -- Fixed test baseline. Deliberately NOT the mod's shipped defaults: these tests pin down the
 -- behaviour of the formula, and should not start failing because a default was retuned.

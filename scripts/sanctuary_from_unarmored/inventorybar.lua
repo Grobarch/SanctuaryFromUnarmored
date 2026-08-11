@@ -13,9 +13,9 @@ local ui = require('openmw.ui')
 local util = require('openmw.util')
 local I = require('openmw.interfaces')
 
-local config = require('scripts.unarmored_dodge.config')
+local config = require('scripts.sanctuary_from_unarmored.config')
 
-local ENTRY_NAME = 'unarmoredDodge'
+local ENTRY_NAME = 'sanctuaryFromUnarmored'
 local ARMOR_ENTRY_NAME = 'armorRating'
 local ICON_SIZE = 16
 
@@ -46,7 +46,7 @@ local function buildEntry()
         return { name = ENTRY_NAME }
     end
 
-    local bonus = I.UnarmoredDodge and I.UnarmoredDodge.getBonus() or 0
+    local bonus = I.SanctuaryFromUnarmored and I.SanctuaryFromUnarmored.getBonus() or 0
     local BASE = I.InventoryExtender.Templates.BASE
 
     return {
@@ -103,7 +103,7 @@ local function ensureEntry()
     local content = window.infoBar.layout.content
     if not content then return end
 
-    local bonus = I.UnarmoredDodge and I.UnarmoredDodge.getBonus() or 0
+    local bonus = I.SanctuaryFromUnarmored and I.SanctuaryFromUnarmored.getBonus() or 0
     local signature = tostring(config.get('inventoryBar')) .. ':' .. tostring(bonus)
     local index = indexOfEntry(content, ENTRY_NAME)
 

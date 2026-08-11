@@ -12,18 +12,18 @@ local storage = require('openmw.storage')
 
 local M = {}
 
-M.PAGE = 'UnarmoredDodgePage'
-M.L10N = 'UnarmoredDodge'
+M.PAGE = 'SanctuaryFromUnarmoredPage'
+M.L10N = 'SanctuaryFromUnarmored'
 
-M.GROUP = 'SettingsUnarmoredDodge'
-M.ARMOUR_GROUP = 'SettingsUnarmoredDodgeArmour'
-M.PERF_GROUP = 'SettingsUnarmoredDodgePerformance'
+M.GROUP = 'SettingsSanctuaryFromUnarmored'
+M.ARMOUR_GROUP = 'SettingsSanctuaryFromUnarmoredArmour'
+M.PERF_GROUP = 'SettingsSanctuaryFromUnarmoredPerformance'
 
 -- Our own slider renderer (registered by slider.lua from a MENU script).
-M.SLIDER_RENDERER = 'UnarmoredDodgeSlider'
+M.SLIDER_RENDERER = 'SanctuaryFromUnarmoredSlider'
 
 -- Section holding the magnitude -> id map of the dynamically created spells.
-M.SPELL_SECTION = 'UnarmoredDodgeSpells'
+M.SPELL_SECTION = 'SanctuaryFromUnarmoredSpells'
 
 -- Values tuned in game (2026-07-27) and adopted as the defaults.
 M.defaults = {
