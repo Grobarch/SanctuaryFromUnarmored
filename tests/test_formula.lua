@@ -86,8 +86,10 @@ check(0, 0.0, run('keepHeavy 50%, full heavy, NO unarmored', {
 check(22, 45.5, run('HEAVY cuirass only, rest bare', {
     skills = { unarmored = 100, heavyarmor = 100 },
     equipment = { cuirass = armor('heavyarmor') } }))
--- The worked example from the "Armour coverage" group description in l10n - must match exactly.
-check(26, 45.5, run('LIGHT cuirass only, rest bare (l10n example)', {
+-- keep% only bites into the share the armour actually covers: 0.30 * 0.40 * 32 = 3.84 here,
+-- while the eight bare slots keep the full bonus (0.70 * 32 = 22.4). This is what the "Armour
+-- coverage" group description promises in l10n - "all nine add up to the whole bonus".
+check(26, 45.5, run('LIGHT cuirass only, rest bare', {
     skills = { unarmored = 100, lightarmor = 100 },
     equipment = { cuirass = armor('lightarmor') } }))
 

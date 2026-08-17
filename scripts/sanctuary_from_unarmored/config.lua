@@ -4,9 +4,9 @@
 -- can read them (storage.playerSection would not be reachable from an NPC). Writing is done
 -- by the settings page; we only read.
 --
--- Three groups: balance, armour coverage and update frequency. The "setting key -> storage
--- section" map is DERIVED from the group definitions, so it cannot drift out of sync when
--- a setting is added.
+-- Four groups: balance, armour coverage, update frequency and removal. The "setting key ->
+-- storage section" map is DERIVED from the group definitions, so it cannot drift out of sync
+-- when a setting is added.
 
 local storage = require('openmw.storage')
 

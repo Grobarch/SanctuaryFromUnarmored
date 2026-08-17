@@ -159,7 +159,7 @@ this one (#51332, #55758) land around 40–60 at skill 100.
 
 ```
 scripts/sanctuary_from_unarmored/
-  config.lua       values plus the definitions of the 3 settings groups (global storage
+  config.lua       values plus the definitions of the four settings groups (global storage
                    sections, so that NPC scripts can read them too; the key->section map
                    is derived from the definitions, so it cannot drift)
   formula.lua      pure function: (equipment, skills) -> Sanctuary + AR component.
@@ -242,7 +242,7 @@ the only thing lost is reacting to armour swapped mid-fight.
 
 The intervals are not read from storage every frame — that would cost more than the work they
 are limiting. They sit in a cache refreshed on every full recalculation and, for the player,
-also immediately after a slider changes (a subscription to all three sections).
+also immediately after a slider changes (a subscription to every settings section).
 
 The engine has **no** handler for equipping or unequipping an item — the `EngineHandlerList` in
 `localscripts.hpp` is `onActive` / `onInactive` / `onConsume` / `onActivated` / `onTeleported`
@@ -341,6 +341,9 @@ nothing. For the duration of the test it is worth raising `NPC share` to 100% an
 entirely when the victim is knocked down, paralysed or unconscious (a sneak attack).
 
 ## Tests
+
+`tests/` belongs to the repository, not to the release archive — the download carries only what
+the game mounts. Clone the repo to run any of this.
 
 `formula.lua` is a pure function and can be exercised outside the game:
 
