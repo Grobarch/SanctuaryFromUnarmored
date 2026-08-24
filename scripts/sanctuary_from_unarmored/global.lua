@@ -59,11 +59,16 @@ end
 
 local removalWasOn = false
 
+-- Sync the removal flag on start and on load, so that a save made in removal mode does not
+-- look like the button was just pressed. This only reads a setting, so unlike creating the
+-- records it is safe to run before the game exists.
+local function syncRemovalFlag()
+    removalWasOn = config.isRemovalMode()
+end
+
 local function ensureFromConfig()
     ensureSpells(config.get('maxSanctuary'))
-    -- Sync the removal flag on start and on load, so that a save made in removal mode does
-    -- not look like the button was just pressed.
-    removalWasOn = config.isRemovalMode()
+    syncRemovalFlag()
 end
 
 --- Takes our ability off every actor that is currently active. Returns how many it removed.
@@ -126,9 +131,14 @@ end
 
 return {
     engineHandlers = {
-        onInit = ensureFromConfig,
-        -- Also fires when a save is loaded, which covers the cap being raised in another
-        -- session or the storage section having been cleared.
+        -- Records are NOT created here. onInit runs while the state manager is still
+        -- State_NoGame, and world.createRecord refuses to run there ("This function cannot
+        -- be used until the game is fully initialized" - checkGameInitialized in
+        -- apps/openmw/mwlua/worldbindings.cpp). Only the flag sync is safe this early.
+        onInit = syncRemovalFlag,
+        -- Fires at the start of a new game AND when a save is loaded, so this covers every
+        -- way the script can come up - including the cap being raised in another session or
+        -- the storage section having been cleared.
         onPlayerAdded = ensureFromConfig,
     },
     eventHandlers = {
