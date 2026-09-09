@@ -205,6 +205,27 @@ if isPlayer then
     end
 end
 
+-- Re-apply once the spell records show up.
+--
+-- BUG (2026-09-09): on a NEW GAME the bonus was missing until the save was reloaded.
+-- applySanctuary() cannot add an ability whose record does not exist yet: it asks the global
+-- script for it and returns. The comment there promised "try again on the next refresh" -
+-- but refresh() only ever runs from onInit/onActive, and both have already fired by then.
+-- So the request was answered, the records were created, and nobody ever looked again.
+--
+-- On a new game the race is real: the player's onInit and the global's onPlayerAdded (which
+-- calls ensureSpells) are not ordered, so the section is empty exactly once - at character
+-- creation. After a reload the records are already in storage, which is why reloading "fixed"
+-- it and why this never showed up in testing on an existing save.
+--
+-- Subscribing closes the loop: whoever writes an id into the section wakes us up. It also
+-- covers a cap raised in another session and a section cleared by hand.
+-- NPCs are deliberately left out - they recalculate at their next onActive anyway, and one
+-- subscription per actor would cost far more than the fix is worth.
+if isPlayer then
+    spellIds:subscribe(async:callback(function() refresh() end))
+end
+
 return {
     interfaceName = 'SanctuaryFromUnarmored',
     interface = {
